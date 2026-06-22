@@ -30,6 +30,7 @@ export class OrigamiGame {
   private resetBtn: HTMLButtonElement | null = null;
   private hintBtn: HTMLButtonElement | null = null;
   private nextBtn: HTMLButtonElement | null = null;
+  private backToLobbyBtn: HTMLButtonElement | null = null;
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -43,17 +44,109 @@ export class OrigamiGame {
     };
     this.seed = generateSeed();
     this.rng = new SeededRandom(this.seed);
-    this.questionPool = this.rng.shuffle([...questionBank]);
+    this.questionPool = [...questionBank];
 
-    this.initUI();
-    this.startGame();
+    this.renderLobby();
   }
 
-  private initUI(): void {
+  private difficultyLabel(difficulty: number): string {
+    switch (difficulty) {
+      case 1: return '简单';
+      case 2: return '中等';
+      case 3: return '困难';
+      default: return `难度 ${difficulty}`;
+    }
+  }
+
+  private renderLobby(): void {
+    this.cleanupGameResources();
+    this.state.gameStatus = 'idle';
+    this.state.currentQuestion = null;
+
+    const cardsHtml = questionBank.map((q, idx) => {
+      const target = modelDescriptions[q.correctModelId];
+      const targetName = target ? target.name : q.correctModelId;
+      const stars = '⭐'.repeat(q.difficulty);
+      return `
+        <div class="level-card" data-question-id="${q.id}">
+          <div class="level-card-header">
+            <span class="level-index">第 ${idx + 1} 关</span>
+            <span class="level-difficulty-badge" title="难度 ${q.difficulty}">${stars}</span>
+          </div>
+          <div class="level-card-body">
+            <h3 class="level-name">${q.name}</h3>
+            <p class="level-desc">${q.description}</p>
+          </div>
+          <div class="level-card-meta">
+            <div class="meta-item">
+              <span class="meta-label">难度</span>
+              <span class="meta-value">${this.difficultyLabel(q.difficulty)}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">最大步数</span>
+              <span class="meta-value">${q.maxSteps}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">目标类型</span>
+              <span class="meta-value">${targetName}</span>
+            </div>
+          </div>
+          <button class="btn btn-primary level-start-btn">开始挑战</button>
+        </div>
+      `;
+    }).join('');
+
+    this.container.innerHTML = `
+      <div class="lobby-container">
+        <div class="lobby-header">
+          <h1>🎯 折纸挑战 · 关卡大厅</h1>
+          <p class="lobby-subtitle">共 ${questionBank.length} 个关卡，选择任意一关开始挑战</p>
+        </div>
+        <div class="level-grid">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+
+    this.container.querySelectorAll('.level-card').forEach(card => {
+      const htmlCard = card as HTMLElement;
+      htmlCard.addEventListener('click', () => {
+        const qid = htmlCard.dataset.questionId;
+        if (qid) this.startLevel(qid);
+      });
+    });
+  }
+
+  private startLevel(questionId: string): void {
+    const index = this.questionPool.findIndex(q => q.id === questionId);
+    if (index === -1) return;
+
+    this.currentQuestionIndex = index;
+    this.cleanupGameResources();
+    this.renderGame();
+    this.loadQuestion(index);
+  }
+
+  private backToLobby(): void {
+    this.renderLobby();
+  }
+
+  private cleanupGameResources(): void {
+    this.origamiSVG?.destroy();
+    this.origamiSVG = null;
+    this.modelViewers.forEach(viewer => viewer.destroy());
+    this.modelViewers = [];
+    this.foldStateManager = null;
+  }
+
+  private renderGame(): void {
     this.container.innerHTML = `
       <div class="game-container">
         <div class="game-header">
-          <h1>🎯 3D 折纸挑战</h1>
+          <div class="game-header-left">
+            <button class="btn btn-back" id="back-to-lobby-btn">🏠 返回大厅</button>
+            <h1>🎯 3D 折纸挑战</h1>
+          </div>
           <div class="game-stats">
             <span class="stat-item">
               <span class="stat-label">关卡</span>
@@ -105,27 +198,25 @@ export class OrigamiGame {
     this.resetBtn = this.container.querySelector('#reset-btn');
     this.hintBtn = this.container.querySelector('#hint-btn');
     this.nextBtn = this.container.querySelector('#next-btn');
+    this.backToLobbyBtn = this.container.querySelector('#back-to-lobby-btn');
 
     this.submitBtn?.addEventListener('click', () => this.checkAnswer());
     this.resetBtn?.addEventListener('click', () => this.resetFolds());
     this.hintBtn?.addEventListener('click', () => this.showHint());
     this.nextBtn?.addEventListener('click', () => this.nextQuestion());
-  }
-
-  private startGame(): void {
-    this.loadQuestion(this.currentQuestionIndex);
+    this.backToLobbyBtn?.addEventListener('click', () => this.backToLobby());
   }
 
   private loadQuestion(index: number): void {
     let safeIndex = index;
     if (index >= this.questionPool.length) {
       this.currentQuestionIndex = 0;
-      this.questionPool = this.rng.shuffle([...questionBank]);
       safeIndex = 0;
     }
 
     const question = this.questionPool[safeIndex];
     this.state.currentQuestion = question;
+    this.state.level = safeIndex + 1;
     this.state.stepsUsed = 0;
     this.state.selectedModelId = null;
     this.state.gameStatus = 'playing';
@@ -347,7 +438,6 @@ export class OrigamiGame {
 
   private nextQuestion(): void {
     this.currentQuestionIndex++;
-    this.state.level++;
     this.loadQuestion(this.currentQuestionIndex);
 
     if (this.nextBtn) {

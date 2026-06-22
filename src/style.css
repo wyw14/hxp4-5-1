@@ -364,6 +364,154 @@ body {
   color: #1565c0;
 }
 
+.lobby-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  padding: 40px 32px 48px;
+}
+
+.lobby-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.lobby-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+
+.lobby-subtitle {
+  font-size: 15px;
+  color: #888;
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.level-card {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 2px solid #ececec;
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.level-card:hover {
+  border-color: #667eea;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(102, 126, 234, 0.2);
+}
+
+.level-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.level-index {
+  font-size: 12px;
+  font-weight: 700;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.12);
+  padding: 4px 10px;
+  border-radius: 10px;
+}
+
+.level-difficulty-badge {
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.level-card-body {
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.level-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.level-desc {
+  font-size: 13px;
+  color: #888;
+  line-height: 1.5;
+}
+
+.level-card-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 10px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.meta-label {
+  font-size: 11px;
+  color: #999;
+}
+
+.meta-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+}
+
+.level-start-btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.game-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-back {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
 @media (max-width: 900px) {
   .game-main {
     grid-template-columns: 1fr;
@@ -380,6 +528,14 @@ body {
   }
 
   .models-container {
+    grid-template-columns: 1fr;
+  }
+
+  .lobby-container {
+    padding: 24px 16px 32px;
+  }
+
+  .level-grid {
     grid-template-columns: 1fr;
   }
 }
